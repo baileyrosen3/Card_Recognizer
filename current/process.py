@@ -79,22 +79,29 @@ def flatten_card(img, set_of_corners):
 def get_corner_snip(flattened_images):
     corner_images = []
     for img in flattened_images:
-        # crop the image to where the corner might be
-        crop = img[10:constants.CARD_HEIGHT, 0:35]
-
-        # resize by a factor of 4
-        crop = cv2.resize(crop, None, fx=4, fy=4)
-
-        # threshold the corner
+        # Adjust crop region
+        crop = img[5:constants.CARD_HEIGHT-5, 0:40]
+        
+        # Increase resize factor
+        crop = cv2.resize(crop, None, fx=5, fy=5)
+        
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        bilateral = cv2.bilateralFilter(gray, 11, 17, 17)
-        canny = cv2.Canny(bilateral, 40, 24)
-        kernel = np.ones((3, 3))
-        result = cv2.dilate(canny, kernel=kernel, iterations=2)
-
-        # append the thresholded image and the original one
+        
+        # Enhance contrast
+        gray = cv2.convertScaleAbs(gray, alpha=1.3, beta=0)
+        
+        # Use adaptive thresholding
+        thresh = cv2.adaptiveThreshold(gray, 255,
+                                     cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                     cv2.THRESH_BINARY_INV, 11, 2)
+        
+        # Clean up noise
+        kernel = np.ones((2,2), np.uint8)
+        result = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+        
         corner_images.append([result, gray])
-
+    
     return corner_images
 
 

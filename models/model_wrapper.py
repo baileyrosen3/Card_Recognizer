@@ -1,9 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator
-from keras.utils.np_utils import to_categorical
-from tensorflow.keras.callbacks import Callback
+import tensorflow as tf
 from models import model
 from helper import constants
 
@@ -39,7 +37,7 @@ def model_wrapper(dataPath, classes, wtsPath=None, train=False, toSaveAs=None):
         myModel.load_weights(wtsPath)
 
     if train:
-        class myCallback(Callback):
+        class myCallback(tf.keras.callbacks.Callback):
             def on_epoch_end(self, epoch, logs={}):
                 if logs.get('accuracy') > 0.90 and logs.get('val_accuracy') > 0.90:
                     print('Stopping training')
@@ -52,7 +50,7 @@ def model_wrapper(dataPath, classes, wtsPath=None, train=False, toSaveAs=None):
         X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
         # decide how to augment the images
-        dataGen = ImageDataGenerator(
+        dataGen = tf.keras.preprocessing.image.ImageDataGenerator(
             rotation_range=20,
             width_shift_range=0.4,
             height_shift_range=0.4,
@@ -66,8 +64,8 @@ def model_wrapper(dataPath, classes, wtsPath=None, train=False, toSaveAs=None):
         dataGen.fit(X_train)
 
         # one-hot encode the y values
-        y_train = to_categorical(y_train, classes)
-        y_test = to_categorical(y_test, classes)
+        y_train = tf.keras.utils.to_categorical(y_train, classes)
+        y_test = tf.keras.utils.to_categorical(y_test, classes)
 
         history = myModel.fit_generator(dataGen.flow(X_train, y_train, batch_size=8),
                                         steps_per_epoch=len(X_train) // 8,

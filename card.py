@@ -6,12 +6,12 @@ from current import process
 from models import model_wrapper
 from helper import constants
 
-frameWidth = 640
-frameHeight = 480
+frameWidth = 800
+frameHeight = 600
 
 # change to 1 if using USB webcam
 cap = cv2.VideoCapture(1)
-frame_rate = 30
+frame_rate = 20
 
 # width is id number 3, height is id 4
 cap.set(3, frameWidth)
@@ -20,6 +20,12 @@ cap.set(4, frameHeight)
 # change brightness to 150
 cap.set(10, 150)
 
+# Add contrast adjustment
+cap.set(11, 50)  # Contrast (works on some cameras)
+
+# Add saturation adjustment
+cap.set(12, 70)  # Saturation (works on some cameras)
+
 flatten_card_set = []
 
 # get the model corresponding to ranks and suits
@@ -27,6 +33,10 @@ modelRanks, modelSuits = model_wrapper.model_wrapper('imgs/ranks', constants.NUM
                          model_wrapper.model_wrapper('imgs/suits', constants.NUM_SUITS, 'weights/suitWeights.h5'),
 
 prev = 0
+
+if not cap.isOpened():
+    print("Error: Could not open video capture device")
+    exit()
 
 while True:
     time_elapsed = time.time() - prev
